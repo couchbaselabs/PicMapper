@@ -35,8 +35,8 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
                     group.enumerateAssetsUsingBlock {
                         (asset, index, stop) in
                         if asset != nil {
-                            let location: AnyObject? = asset.valueForProperty(ALAssetPropertyLocation)
-                            if location.description != "nil" {
+                            let location: AnyObject! = asset.valueForProperty(ALAssetPropertyLocation)
+                            if location != nil {
                                 NSLog("CLLocation %@", location? as CLLocation)
                                 self.saveLocation(asset)
                             }

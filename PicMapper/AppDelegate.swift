@@ -41,9 +41,6 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
             (doc: [NSObject: AnyObject]!, emit: CBLMapEmitBlock!) in
             if let long = doc["long"] as? NSNumber {
                 if let lat = doc["lat"] as? NSNumber {
-//                    let coord = NSArray(array: [long , lat])
-//                    let geoJSON = NSDictionary(dictionary: ["type":"Point", "coordinates" : coord])
-//                    println(coord[0].debugDescription)
                     let key: AnyObject! = CBLGeoPointKey(long, lat)
                     if key != nil {
                         emit(key, nil)
@@ -60,34 +57,32 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         assetsLibrary.enumerateGroupsWithTypes(0xFFFFFFFF,
             usingBlock: {(group:ALAssetsGroup!, stop) in
                 if group != nil {
-                    NSLog("group %@", group!)
-                    
-                    group.enumerateAssetsUsingBlock { (asset, index, stop) in
-                        if asset != nil {
-                            let location: AnyObject! = asset.valueForProperty(ALAssetPropertyLocation)
-                            if location != nil {
-//                                NSLog("CLLocation %@", location? as CLLocation)
-                                self.saveLocation(asset)
+                    self.database?.manager.backgroundTellDatabaseNamed("geo", to: { (db:CBLDatabase!) -> Void in
+                        group.enumerateAssetsUsingBlock { (asset, index, stop) in
+                            if asset != nil {
+                                let location: AnyObject! = asset.valueForProperty(ALAssetPropertyLocation)
+                                if location != nil {
+                                    self.saveLocation(db, asset: asset)
+                                }
                             }
                         }
-                    }
+                    })
                 }
             }, failureBlock: {(error:NSError!) in
                 NSLog("error %@", error)
             })
     }
     
-    func saveLocation(asset: ALAsset) {
+    func saveLocation(database: CBLDatabase, asset: ALAsset) {
         let location = asset.valueForProperty(ALAssetPropertyLocation) as CLLocation
         let rep = asset.defaultRepresentation()
         let url = rep.url()
         let thumb = asset.thumbnail().takeUnretainedValue()
         let img = UIImage(CGImage: thumb)
-        NSLog("URL %@", url)
         var lat = location.coordinate.latitude
         var long = location.coordinate.longitude
         
-        var doc = self.database?.documentWithID(url.absoluteString)
+        var doc = database.documentWithID(url.absoluteString)
         var error: NSError?
         doc?.putProperties(["lat":lat,"long":long], error: &error)
         var rev = doc?.currentRevision.createRevision()

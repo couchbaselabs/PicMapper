@@ -184,6 +184,7 @@
 				TargetAttributes = {
 					79D3208219BF6AE7008C355C = {
 						CreatedOnToolsVersion = 6.0;
+						DevelopmentTeam = N2Q372V7W2;
 					};
 					79D3209419BF6AE7008C355C = {
 						CreatedOnToolsVersion = 6.0;
@@ -353,6 +354,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_LAUNCHIMAGE_NAME = LaunchImage;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
 				DEFINES_MODULE = NO;
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
@@ -361,6 +363,7 @@
 					"$(USER_LIBRARY_DIR)/Developer/Xcode/DerivedData/CouchbaseLite-bhhkqfrlnbnqogachbjesrrwggdn/Build/Products/Debug-ios-universal",
 				);
 				INFOPLIST_FILE = PicMapper/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 7.1;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				OTHER_LDFLAGS = "-ObjC";
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -373,6 +376,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_LAUNCHIMAGE_NAME = LaunchImage;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
 				DEFINES_MODULE = NO;
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
@@ -381,6 +385,7 @@
 					"$(USER_LIBRARY_DIR)/Developer/Xcode/DerivedData/CouchbaseLite-bhhkqfrlnbnqogachbjesrrwggdn/Build/Products/Debug-ios-universal",
 				);
 				INFOPLIST_FILE = PicMapper/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 7.1;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				OTHER_LDFLAGS = "-ObjC";
 				PRODUCT_NAME = "$(TARGET_NAME)";

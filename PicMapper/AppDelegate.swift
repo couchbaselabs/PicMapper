@@ -41,13 +41,18 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
             (doc: [NSObject: AnyObject]!, emit: CBLMapEmitBlock!) in
             if let long = doc["long"] as? NSNumber {
                 if let lat = doc["lat"] as? NSNumber {
-                    let geoJSON = ["type":"Point", "coordinates" : [long, lat]]
-                    emit(CBLGeoJSONKey(geoJSON), nil)
+//                    let coord = NSArray(array: [long , lat])
+//                    let geoJSON = NSDictionary(dictionary: ["type":"Point", "coordinates" : coord])
+//                    println(coord[0].debugDescription)
+                    let key: AnyObject! = CBLGeoPointKey(long, lat)
+                    if key != nil {
+                        emit(key, nil)
+                    }
                 }
             }
 
         }
-        geoView?.setMapBlock(block, version: "1")
+        geoView?.setMapBlock(block, version: "2")
     }
     
     func importPhotos() {

@@ -15,13 +15,14 @@ class ViewController: UIViewController, MKMapViewDelegate {
     @IBOutlet weak var map: MKMapView!
     var database: CBLDatabase?
     var liveQuery: CBLLiveQuery?
+    var annotations: [MKAnnotation]?
 
     override func viewDidLoad() {
         super.viewDidLoad()
         let appDelegate = UIApplication.sharedApplication().delegate as AppDelegate
         database = appDelegate.database
         displayMap()
-        queryView()
+        startLiveQuery()
     }
 
     func displayMap() {
@@ -50,6 +51,25 @@ class ViewController: UIViewController, MKMapViewDelegate {
         return aView
     }
     
+    func mapView(mapView: MKMapView!, regionDidChangeAnimated animated: Bool) {
+        queryBoundingBox(mapView)
+    }
+    
+    func queryBoundingBox(mapView: MKMapView!) {
+        var vis = mapView.visibleMapRect
+        var nePoint = MKMapPointMake(MKMapRectGetMaxX(vis), vis.origin.y)
+        var swPoint = MKMapPointMake(vis.origin.x, MKMapRectGetMaxY(vis))
+        var neCoord = MKCoordinateForMapPoint(nePoint)
+        var swCoord = MKCoordinateForMapPoint(swPoint)
+        
+        var bbox = CBLGeoRect(min: CBLGeoPoint(x: swCoord.longitude, y: swCoord.latitude), max: CBLGeoPoint(x: neCoord.longitude, y: neCoord.latitude))
+        println("bbox max y \(bbox.max.y) min y \(bbox.min.y) max x \(bbox.max.x) min x \(bbox.min.x)")
+        self.liveQuery?.boundingBox = bbox
+        // workaround to update the query
+        self.liveQuery?.stop()
+        self.liveQuery?.start()
+    }
+    
     func imageWithImage(image:UIImage, scaledToSize newSize:CGSize) -> UIImage{
         UIGraphicsBeginImageContextWithOptions(newSize, false, 0.0);
         image.drawInRect(CGRectMake(0, 0, newSize.width, newSize.height))
@@ -58,12 +78,12 @@ class ViewController: UIViewController, MKMapViewDelegate {
         return newImage
     }
     
-    func queryView() {
+    func startLiveQuery() {
         let geoView = self.database?.viewNamed("geo")
         let query = geoView?.createQuery()
-//        var bbox = CBLGeoRect(min: CBLGeoPoint(x: -100, y: 0), max: CBLGeoPoint(x: 180, y: 90))
-//        query?.boundingBox = bbox
+        query?.limit = 20
         self.liveQuery = query?.asLiveQuery()
+        queryBoundingBox(self.map)
         self.liveQuery?.addObserver(self, forKeyPath: "rows", options: nil, context: nil)
     }
     
@@ -76,8 +96,6 @@ class ViewController: UIViewController, MKMapViewDelegate {
         }
     }
     
-    
-    
     func drawRows(rows:CBLQueryEnumerator) {
         var error: NSError?
         if (error != nil) {
@@ -85,6 +103,8 @@ class ViewController: UIViewController, MKMapViewDelegate {
         }
         let count = rows.count
         let countInt = Int(count)
+        println("countInt \(countInt)")
+        var newAnnotations : [MKAnnotation] = []
         for var index = 0; index < countInt; ++index {
             var row = rows.rowAtIndex(UInt(index))
             var id = row?.documentID
@@ -92,12 +112,16 @@ class ViewController: UIViewController, MKMapViewDelegate {
             if let long = props["long"] as? NSNumber {
                 if let lat = props["lat"] as? NSNumber {
                     var annotation = CustomPointAnnotation()
+                    println("loc \(lat) \(long)")
                     annotation.setCoordinate(CLLocationCoordinate2D(latitude: lat, longitude: long))
                     annotation.title = id
-                    map.addAnnotation(annotation)
+                    newAnnotations.append(annotation)
                 }
             }
         }
+        map.removeAnnotations(self.annotations)
+        self.annotations = newAnnotations
+        map.addAnnotations(self.annotations)
     }
     
     override func didReceiveMemoryWarning() {

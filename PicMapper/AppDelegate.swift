@@ -14,30 +14,54 @@ import AssetsLibrary
 class AppDelegate: UIResponder, UIApplicationDelegate {
     
     var window: UIWindow?
+    var database: CBLDatabase?
 
 
     func application(application: UIApplication!, didFinishLaunchingWithOptions launchOptions: NSDictionary!) -> Bool {
         // Override point for customization after application launch.
+        setupCouchbase()
         importPhotos()
         return true
     }
 
+    func setupCouchbase() {
+        var manager = CBLManager.sharedInstance()
+        var error: NSError?
+        self.database = manager.databaseNamed("geo", error: &error)
+        if (error != nil) {
+            println(error)
+            exit(-1)
+        }
+        setupViews()
+    }
+    
+    func setupViews() {
+        var geoView = self.database?.viewNamed("geo")
+        var block: CBLMapBlock = {
+            (doc: [NSObject: AnyObject]!, emit: CBLMapEmitBlock!) in
+            if let long = doc["long"] as? NSNumber {
+                if let lat = doc["lat"] as? NSNumber {
+                    let geoJSON = ["type":"Point", "coordinates" : [long, lat]]
+                    emit(CBLGeoJSONKey(geoJSON), nil)
+                }
+            }
+
+        }
+        geoView?.setMapBlock(block, version: "1")
+    }
+    
     func importPhotos() {
         let assetsLibrary = ALAssetsLibrary()
-        var groups = [ALAssetsGroup]()
-
         assetsLibrary.enumerateGroupsWithTypes(0xFFFFFFFF,
             usingBlock: {(group:ALAssetsGroup!, stop) in
-//                groups.append(group);
                 if group != nil {
                     NSLog("group %@", group!)
                     
-                    group.enumerateAssetsUsingBlock {
-                        (asset, index, stop) in
+                    group.enumerateAssetsUsingBlock { (asset, index, stop) in
                         if asset != nil {
                             let location: AnyObject! = asset.valueForProperty(ALAssetPropertyLocation)
                             if location != nil {
-                                NSLog("CLLocation %@", location? as CLLocation)
+//                                NSLog("CLLocation %@", location? as CLLocation)
                                 self.saveLocation(asset)
                             }
                         }
@@ -49,14 +73,25 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     }
     
     func saveLocation(asset: ALAsset) {
-        let location: AnyObject? = asset.valueForProperty(ALAssetPropertyLocation) as CLLocation
+        let location = asset.valueForProperty(ALAssetPropertyLocation) as CLLocation
         let rep = asset.defaultRepresentation()
         let url = rep.url()
-        //        let thumb = asset.thumbnail()
-        NSLog("CLLocation %@", location? as CLLocation)
+        let thumb = asset.thumbnail().takeUnretainedValue()
+        let img = UIImage(CGImage: thumb)
         NSLog("URL %@", url)
+        var lat = location.coordinate.latitude
+        var long = location.coordinate.longitude
         
-
+        var doc = self.database?.documentWithID(url.absoluteString)
+        var error: NSError?
+        doc?.putProperties(["lat":lat,"long":long], error: &error)
+        var rev = doc?.currentRevision.createRevision()
+        let data = UIImageJPEGRepresentation(img, 0.75)
+        rev?.setAttachmentNamed("thumb", withContentType: "image/jpeg", content: data)
+        rev?.save(&error)
+        if (error != nil && error?.code != 409) {
+            println(error)
+        }
     }
     
     func applicationWillResignActive(application: UIApplication!) {

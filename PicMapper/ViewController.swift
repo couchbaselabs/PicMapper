@@ -32,7 +32,7 @@ class ViewController: UIViewController, MKMapViewDelegate {
         )
         var span = MKCoordinateSpanMake(100, 100)
         var region = MKCoordinateRegion(center: location, span: span)
-        map.setRegion(region, animated: true)
+        map.setRegion(region, animated: false)
     }
     
     func mapView(mapView: MKMapView!, viewForAnnotation annotation: MKAnnotation!) -> MKAnnotationView! {
@@ -46,8 +46,10 @@ class ViewController: UIViewController, MKMapViewDelegate {
         var doc = self.database?.documentWithID(id)
         var thumb = doc?.currentRevision.attachmentNamed("thumb")
         var data: NSData! = thumb?.content
-        var img = UIImage(data: data)
-        aView?.image = imageWithImage(img, scaledToSize: CGSize(width: 40, height: 40))
+        if data != nil {
+            var img = UIImage(data: data)
+            aView?.image = imageWithImage(img, scaledToSize: CGSize(width: 40, height: 40))
+        }
         return aView
     }
     
@@ -65,7 +67,7 @@ class ViewController: UIViewController, MKMapViewDelegate {
         var bbox = CBLGeoRect(min: CBLGeoPoint(x: swCoord.longitude, y: swCoord.latitude), max: CBLGeoPoint(x: neCoord.longitude, y: neCoord.latitude))
         println("bbox max y \(bbox.max.y) min y \(bbox.min.y) max x \(bbox.max.x) min x \(bbox.min.x)")
         self.liveQuery?.boundingBox = bbox
-        // workaround to update the query
+        // workaround to update the query on new parameters
         self.liveQuery?.stop()
         self.liveQuery?.start()
     }
@@ -81,7 +83,7 @@ class ViewController: UIViewController, MKMapViewDelegate {
     func startLiveQuery() {
         let geoView = self.database?.viewNamed("geo")
         let query = geoView?.createQuery()
-        query?.limit = 20
+        query?.limit = 50
         self.liveQuery = query?.asLiveQuery()
         queryBoundingBox(self.map)
         self.liveQuery?.addObserver(self, forKeyPath: "rows", options: nil, context: nil)
@@ -111,7 +113,7 @@ class ViewController: UIViewController, MKMapViewDelegate {
             let props = row?.document.userProperties as [NSObject : AnyObject]!
             if let long = props["long"] as? NSNumber {
                 if let lat = props["lat"] as? NSNumber {
-                    var annotation = CustomPointAnnotation()
+                    var annotation = MKPointAnnotation()
                     println("loc \(lat) \(long)")
                     annotation.setCoordinate(CLLocationCoordinate2D(latitude: lat, longitude: long))
                     annotation.title = id
@@ -132,7 +134,3 @@ class ViewController: UIViewController, MKMapViewDelegate {
 
 }
 
-
-class CustomPointAnnotation: MKPointAnnotation {
-//    var image: NSImage 
-}

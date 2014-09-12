@@ -15,10 +15,9 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     
     var window: UIWindow?
     var database: CBLDatabase?
-
+    let syncURL = NSURL(string: "http://mineral.local:4984/geo")
 
     func application(application: UIApplication!, didFinishLaunchingWithOptions launchOptions: NSDictionary!) -> Bool {
-        // Override point for customization after application launch.
         setupCouchbase()
         importPhotos()
         return true
@@ -33,6 +32,16 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
             exit(-1)
         }
         setupViews()
+        setupSync()
+    }
+    
+    func setupSync() {
+        var pull = self.database?.createPullReplication(syncURL)
+        pull?.continuous = true        
+        var push = self.database?.createPushReplication(syncURL)
+        push?.continuous = true
+        pull?.start()
+        push?.start()
     }
     
     func setupViews() {
@@ -83,14 +92,19 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         var long = location.coordinate.longitude
         
         var doc = database.documentWithID(url.absoluteString)
-        var error: NSError?
-        doc?.putProperties(["lat":lat,"long":long], error: &error)
-        var rev = doc?.currentRevision.createRevision()
-        let data = UIImageJPEGRepresentation(img, 0.75)
-        rev?.setAttachmentNamed("thumb", withContentType: "image/jpeg", content: data)
-        rev?.save(&error)
-        if (error != nil && error?.code != 409) {
-            println(error)
+        var revid = doc.currentRevisionID
+        if revid == nil {
+            var error: NSError?
+            doc?.putProperties(["lat":lat,"long":long], error: &error)
+            if error == nil {
+                var rev = doc?.currentRevision.createRevision()
+                let data = UIImageJPEGRepresentation(img, 0.75)
+                rev?.setAttachmentNamed("thumb", withContentType: "image/jpeg", content: data)
+                rev?.save(&error)
+                if (error != nil && error?.code != 409) {
+                    println(error)
+                }
+            }
         }
     }
     

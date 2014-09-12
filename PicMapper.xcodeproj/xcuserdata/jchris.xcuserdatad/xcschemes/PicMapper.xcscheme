@@ -73,7 +73,15 @@
             isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
+            argument = "-LogRemoteRequest YES"
+            isEnabled = "YES">
+         </CommandLineArgument>
+         <CommandLineArgument
             argument = "-LogViewVerbose YES"
+            isEnabled = "NO">
+         </CommandLineArgument>
+         <CommandLineArgument
+            argument = "-LogSync YES"
             isEnabled = "YES">
          </CommandLineArgument>
       </CommandLineArguments>

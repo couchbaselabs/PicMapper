@@ -1,0 +1,17 @@
+{
+  "log": ["Changes", "HTTP+", "REST+","Changes+"],
+  "facebook": { "register": true },
+  "databases": {
+    "geo" : {
+      "server" : "walrus:///tmp/walrus",
+      "sync": `
+      function(doc){
+        if (doc.long)
+          channel("geo");
+      }`,
+      "users" : {
+        "GUEST": {"disabled": false, "admin_channels": ["geo"] }
+      }
+    }
+  }
+}

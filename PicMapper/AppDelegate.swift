@@ -50,7 +50,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
             (doc: [NSObject: AnyObject]!, emit: CBLMapEmitBlock!) in
             if let long = doc["long"] as? NSNumber {
                 if let lat = doc["lat"] as? NSNumber {
-                    let key: AnyObject! = CBLGeoPointKey(long, lat)
+                    let key: AnyObject! = CBLGeoPointKey(long.doubleValue, lat.doubleValue)
                     if key != nil {
                         emit(key, nil)
                     }

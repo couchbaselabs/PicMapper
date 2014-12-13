@@ -48,7 +48,7 @@ class ViewController: UIViewController, MKMapViewDelegate {
         var data: NSData! = thumb?.content
         if data != nil {
             var img = UIImage(data: data)
-            aView?.image = imageWithImage(img, scaledToSize: CGSize(width: 40, height: 40))
+            aView?.image = imageWithImage(img!, scaledToSize: CGSize(width: 40, height: 40))
         }
         return aView
     }
@@ -115,7 +115,7 @@ class ViewController: UIViewController, MKMapViewDelegate {
                 if let lat = props["lat"] as? NSNumber {
                     var annotation = MKPointAnnotation()
                     println("loc \(lat) \(long)")
-                    annotation.setCoordinate(CLLocationCoordinate2D(latitude: lat, longitude: long))
+                    annotation.setCoordinate(CLLocationCoordinate2D(latitude: lat.doubleValue, longitude: long.doubleValue))
                     annotation.title = id
                     newAnnotations.append(annotation)
                 }
